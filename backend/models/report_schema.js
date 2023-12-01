@@ -34,32 +34,6 @@ const ReportSchema = new Schema({
     },
 
 
-
-
-    ResolutionTime: 
-    {
-        type: Date,
-
-        startingTime:
-         {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'tickets',
-            required: true,
-            select: 'startingTime',
-          },
-          closingTime:
-           {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'tickets',
-            required: true,
-            select: 'closingTime',
-          },
-       
-          //? ask how to subtract them
-        
-    },
-
-
    AgentPerformance: 
 
     {
@@ -69,7 +43,7 @@ const ReportSchema = new Schema({
             type: mongoose.Schema.Types.ObjectId(),
             ref: "agent_schema",  // ! check reference  mn meen ticket or automated workflow
             required: true,
-            select: 'Performance', 
+            select: 'Rating', 
 
         required: true,
         
