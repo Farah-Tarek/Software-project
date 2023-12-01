@@ -1,6 +1,7 @@
 const { default: mongoose } = require("mongoose");
 const User = require('./models/userSchema');
 const kw = require('./models/KnowldgeBase');
+const Report = require('./models/report_schema');
 
 
 mongoose.connect('mongodb://127.0.0.1:27017/newtest1').then(async (res)=>{
