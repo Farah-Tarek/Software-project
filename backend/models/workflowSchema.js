@@ -77,7 +77,7 @@ const workflowSchemas = new Schema({
 
         mainIssue:{
           type: mongoose.Schema.Types.ObjectId,
-          ref: "ticketSchema",
+          ref: "tickets",
           required: true,
           select: 'mainIssue'
          },

@@ -27,7 +27,7 @@ const ReportSchema = new Schema({
                 ref: "tickets",
                 required: true,
                 default : open,
-                select: 'Status',
+                select: 'status',
             
         required: true,
 
@@ -43,7 +43,7 @@ const ReportSchema = new Schema({
             type: mongoose.Schema.Types.ObjectId(),
             ref: "agent_schema",  // ! check reference  mn meen ticket or automated workflow
             required: true,
-            select: 'Rating', 
+            select: 'rating', 
 
         required: true,
         

@@ -1,7 +1,9 @@
 const { default: mongoose } = require("mongoose");
 const User = require('./models/userSchema');
-const kw = require('./models/KnowldgeBase');
-const Report = require('./models/report_schema');
+const tickets = require('./models/tickets');
+//const report_schema = require('./models/report_schema');
+
+
 
 
 mongoose.connect('mongodb://127.0.0.1:27017/newtest1').then(async (res)=>{
@@ -9,7 +11,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/newtest1').then(async (res)=>{
         "DB Connected"
     )
     try{
-        const user = await User.create({
+        const Tick = await tickets.create({
             firstname: 'amr',
             Lastname: 'tarek',
             userid: 3,

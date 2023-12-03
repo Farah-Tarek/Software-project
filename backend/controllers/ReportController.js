@@ -1,8 +1,17 @@
 const report_schema = require("../models/report_schema");
 
+
+/*const Calculate_ResolutionTime{
+
+};
+
+*/
+
+
+
 const ReportController = {
 
-
+  
     GetAllTicketStatus: async (req, res) => {
         try {
           const ticketsStatus = await report_schema.find();
@@ -40,7 +49,7 @@ const ReportController = {
         } catch (error) {
           return res.status(500).json({ message: error.message });
         }
-      },
+      },      
+};
 
-
-}
+module.exports = ReportController;

@@ -9,7 +9,7 @@ const ticketSchema = new Schema({
       },
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'user_model',
+        ref: 'userSchema',
         required: true,
         select: 'userid'
     },
@@ -40,7 +40,7 @@ const ticketSchema = new Schema({
 
       assignedAgent:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'agent_model',
+        ref: 'agent_schema',
         select: 'agentid'
       },
 
