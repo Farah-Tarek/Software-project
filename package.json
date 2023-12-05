@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "crypto": "^1.0.1",
+    "googleapis": "^129.0.0",
+    "gridfs-stream": "^1.1.1",
+    "mongodb": "^6.3.0",
+    "mongoose": "^8.0.2",
+    "speakeasy": "^2.0.0"
+  }
+}
