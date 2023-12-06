@@ -6,13 +6,13 @@ const Schema = mongoose.Schema
 const sub_issues = new Schema({
     Ticketid: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Ticket',
+        ref: 'tickets',
         required: true,
         select: 'Ticketid'
     },
       issueType: {
         type: mongoose.Schema.Types.ObjectId(),
-        ref: "Ticket",
+        ref: "tickets",
         required: true,
         select: 'issueType'
 

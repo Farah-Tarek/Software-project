@@ -5,32 +5,32 @@ const AgentSchema = new Schema({
 
     userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'userSchema',
         required: true
     },
 
     firstname: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'userSchema',
       select: 'firstname',
       required: true
     },
     Lastname: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'userSchema',
       select: 'Lastname',
       required: true
     },
 
     userpassword: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'userSchema',
       select: 'userpassword',
       required: true
     },
     email: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: 'userSchema',
       select: 'email',
       required: true
 
