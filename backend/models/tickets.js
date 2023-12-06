@@ -1,87 +1,72 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema
+const Schema = mongoose.Schema;
 
-const ticketSchema = new Schema({
+const tickets = new Schema({
     Ticketid: {
-        type:Number,
-        unique:true,
+        type: Number,
+        unique: true,
         required: true
-      },
+    },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user_model',
         required: true,
         select: 'userid'
     },
-      issueType: {
+    issueType: {
         type: String,
         enum: ['Software', 'Hardware', 'Network'],
         required: true
-      },
-      issue: {
+    },
+    issue: {
         type: String,
         required: true
-      },
-      
-      status: {
+    },
+    status: {
         type: String,
         required: true,
-        enum:['created','open','updated','close'],
+        enum: ['created', 'open', 'updated', 'close'],
         default: 'created'
-      },
-      resolution: {
+    },
+    resolution: {
         type: String
-      },
-      assigned_to_Agent: {
+    },
+    assigned_to_Agent: {
         type: Boolean,
         required: true,
-        default:'false'
-      },
-
-      assignedAgent:{
+        default: false
+    },
+    assignedAgent: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'agent_model',
         select: 'agentid'
-      },
-
-     
-      createdTime: {
+    },
+    createdTime: {
         type: Date,
         required: true
-        
-      },
-      updatedTime: {
+    },
+    updatedTime: {
+        type: Date
+    },
+    closeTime: {
         type: Date,
-        required: true
-      },
-
-      closeTime: {
-        type: Date,
-        required: true
-      },
-
-      rating: {
+        default: null
+    },
+    rating: {
         type: Number,
-        enum: [0,1, 2, 3,4,5],
+        enum: [0, 1, 2, 3, 4, 5],
         required: true
-      },
-      routing: {
+    },
+    routing: {
         type: String,
         required: true
-
-      },
-      priority: {
+    },
+    priority: {
         type: String,
-        enum:['high','medium','low'],
+        enum: ['high', 'medium', 'low'],
         required: true
-      },
-      assignedAgent:{
-        type:String,
-        enum:['agent1','agent2','agent3']
-      },
+    },
+});
 
-      
-
-})
-const Ticket = mongoose.model('Ticket', ticketSchema);
+const Ticket = mongoose.model('Ticket', tickets);
 module.exports = Ticket;
