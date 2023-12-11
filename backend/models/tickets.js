@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const User = require('../models/userSchema'); // Make sure the path is correct
+
 
 const tickets = new Schema({
     Ticketid: {
@@ -9,9 +11,8 @@ const tickets = new Schema({
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'userSchema',
+        ref: 'User',
         required: true,
-        select: 'userid'
     },
     issueType: {
         type: String,
@@ -25,7 +26,7 @@ const tickets = new Schema({
     status: {
         type: String,
         required: true,
-        enum: ['created', 'open', 'updated', 'close'],
+        enum: ['created', 'open', 'updated', 'close','pending'],
         default: 'created'
     },
     resolution: {
@@ -38,7 +39,7 @@ const tickets = new Schema({
     },
     assignedAgent: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'agent_schema',
+        ref: 'agent_model',
         select: 'agentid'
     },
     createdTime: {
@@ -67,6 +68,22 @@ const tickets = new Schema({
         required: true
     },
 });
+
+tickets.pre('save', async function (next) {
+    try {
+      const user = await mongoose.model('User').findById(this.user);
+      if (!user) {
+        throw new Error('User not found');
+      }
+  
+      this.user = user.userid;
+  
+  
+      next();
+    } catch (error) {
+      next(error);
+    }
+  });
 
 const Ticket = mongoose.model('Ticket', tickets);
 module.exports = Ticket;

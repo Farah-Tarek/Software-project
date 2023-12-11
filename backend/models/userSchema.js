@@ -13,10 +13,10 @@ const userSchema = new Schema({
   userid: {
     type: Number,
     required: true,
-    unique: true,
+    unique: true, 
   },
   userpassword: {
-    type: Number,
+    type: String,
     required: true,
   },
   email: {
@@ -34,5 +34,5 @@ const userSchema = new Schema({
     enum: ["user", "admin", "supportagent", "manager"],
   },
 });
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model('User', userSchema);
 module.exports = User;

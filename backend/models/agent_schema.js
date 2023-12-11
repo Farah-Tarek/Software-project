@@ -1,60 +1,76 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema
+const Schema = mongoose.Schema;
 
-const AgentSchema = new Schema({
+const SupportAgentSchema = new Schema({
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  firstname: {
+    type: String,
+  },
+  Lastname: {
+    type: String,
+  },
+  userpassword: {
+    type: String,
+  },
+  email: {
+    type: String,
+  },
+  rating: {
+    type: Number,
+  },
+  number_of_assigned_tickets: {
+    type: Number,
+    default:0
+  },
+  available: {
+    type: Boolean,
+    default:'yes'
+  },
+  mfa: {
+    enabled: {
+      type: Boolean,
+    },
+    secret: {
+      type: String,
+    }
+  },
+  major: {
+    type: String,
+  },
+  agent_type:{
+    type:String,
+    enum :['Agent 1','Agent 2','Agent 3'],
+    required: true
 
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'userSchema',
-        required: true
-    },
+  }
 
-    firstname: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'userSchema',
-      select: 'firstname',
-      required: true
-    },
-    Lastname: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'userSchema',
-      select: 'Lastname',
-      required: true
-    },
 
-    userpassword: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'userSchema',
-      select: 'userpassword',
-      required: true
-    },
-    email: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'userSchema',
-      select: 'email',
-      required: true
+});
 
-    },
-      rating:
-      {
-        type:Number,
-        enum:[1,2,3,4,5]
-      },
-      available: {
-        type: Boolean,
-        default: true
-      },
-      
-      mfa: {
-        enabled: { type: Boolean, default: false },
-        secret: { type: String }
-    },
-     
-      major:{
-        enum:['Software','Hardware','Network'],
-        type:Number
-      }
-})
+// Middleware to automatically populate email and password from the associated user
+SupportAgentSchema.pre('save', async function (next) {
+  try {
+    const user = await mongoose.model('User').findById(this.userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
 
-const SupportAgent = mongoose.model('SupportAgent', AgentSchema);
+    this.email = user.email;
+    this.userpassword = user.userpassword;
+    this.firstname = user.firstname;
+    this.Lastname = user.Lastname;
+
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
+const SupportAgent = mongoose.model('SupportAgent', SupportAgentSchema);
+
 module.exports = SupportAgent;

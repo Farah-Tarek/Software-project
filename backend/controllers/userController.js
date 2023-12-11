@@ -1,4 +1,5 @@
 const userModel = require("../models/userSchema");
+const SupportAgent = require('./models/agent_schema');
 
 const userController = {
     register: async (req, res) => {
