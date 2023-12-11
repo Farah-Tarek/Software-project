@@ -72,29 +72,69 @@ const assignTicketToAgent = async (ticketId, agentType, queue) => {
 
 const Assign_Ticket_With_Id_from_queue = async (queues) => {
   try {
-    if (queues['high'].length > 0) {
-      const ticketId = queues['high'].pop();
-      const ticket = await Ticket.findOne({ Ticketid: ticketId }).populate('user assignedAgent');
-
-      if (ticket.issueType === 'Software') {
-        await assignTicketToAgent(ticketId, 'Agent 1', queues['high']);
-      } else if (ticket.issueType === 'Hardware') {
-        await assignTicketToAgent(ticketId, 'Agent 2', queues['high']);
-      } else if (ticket.issueType === 'Network') {
-         await assignTicketToAgent(ticketId, 'Agent 3', queues['high']);
-        
-          }
+    const assignToAgent = async (ticketId, agentOptions, queue, ticket) => {
+      for (const agentType of agentOptions) {
+        await assignTicketToAgent(ticketId, agentType, queue);
+        const updatedTicket = await Ticket.findOne({ Ticketid: ticketId }).populate('user assignedAgent');
+        if (updatedTicket.status === 'assigned') {
+          break; // Exit the loop if the ticket is successfully assigned
         }
-      
-    
+      }
+    };
 
-    // ... (other code)
+    const processQueue = async (priorityQueue, agentOptions) => {
+      if (priorityQueue.length > 0) {
+        const ticketId = priorityQueue[priorityQueue.length - 1];
+        const ticket = await Ticket.findOne({ Ticketid: ticketId }).populate('user assignedAgent');
+
+        switch (ticket.issueType) {
+          case 'Software':
+            await assignToAgent(ticketId, agentOptions.software, priorityQueue, ticket);
+            break;
+          case 'Hardware':
+            await assignToAgent(ticketId, agentOptions.hardware, priorityQueue, ticket);
+            break;
+          case 'Network':
+            await assignToAgent(ticketId, agentOptions.network, priorityQueue, ticket);
+            break;
+          default:
+            throw new Error('Invalid issueType');
+        }
+      }
+    };
+
+    // Define agent options for each priority level
+    const agentOptionshigh = {
+      software: ['Agent 1'],
+      hardware: ['Agent 2'],
+      network: ['Agent 3'],
+    };
+
+    const agentOptionsmedium = {
+      software: ['Agent 1', 'Agent 2'],
+      hardware: ['Agent 2', 'Agent 3'],
+      network: ['Agent 3', 'Agent 1'],
+    };
+
+    const agentOptionslow = {
+      software: ['Agent 1', 'Agent 2', 'Agent 3'],
+      hardware: ['Agent 2', 'Agent 3', 'Agent 1'],
+      network: ['Agent 3', 'Agent 1', 'Agent 2'],
+    };
+
+    await processQueue(queues.high, agentOptionshigh);
+    await processQueue(queues.medium, agentOptionsmedium);
+    await processQueue(queues.low, agentOptionslow);
 
   } catch (error) {
     console.error(error);
     throw new Error('Error assigning ticket with ID from queue');
   }
 };
+
+
+
+
 
 const createTicket = async (req, res) => {
   try {
