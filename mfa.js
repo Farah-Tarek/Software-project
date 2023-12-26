@@ -78,4 +78,23 @@ return (
     {!loading && children}
     </AuthContext.Provider>
 );
+
+async function mfaSignIn(email, mfaCode) {
+    try {
+    const response = await fetch('/api/mfaSignIn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, mfaCode }),
+    });
+
+    if (!response.ok) {
+        throw new Error('MFA sign-in failed.');
+    }
+
+    return response.json();
+    } catch (error) {
+    console.error(error);
+    throw error;
+    }
+}
 }
