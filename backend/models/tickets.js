@@ -2,7 +2,18 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const User = require('../models/userSchema'); // Make sure the path is correct
 
+const Ticket = require('./models/ticket'); // Make sure the path is correct
 
+Ticket.get('/user-tickets/:userid', async (req, res) => {
+try {
+    const tickets = await Ticket.find({ user: req.params.userid });
+    res.json(tickets);
+} catch (error) {
+    res.status(500).json({ message: 'Error fetching tickets' });
+}
+});
+
+module.exports = router;
 const tickets = new Schema({
     Ticketid: {
         type: Number,
@@ -71,19 +82,19 @@ const tickets = new Schema({
 
 tickets.pre('save', async function (next) {
     try {
-      const user = await mongoose.model('User').findById(this.user);
-      if (!user) {
+    const user = await mongoose.model('User').findById(this.user);
+    if (!user) {
         throw new Error('User not found');
-      }
-  
-      this.user = user.userid;
-  
-  
-      next();
-    } catch (error) {
-      next(error);
     }
-  });
+
+    this.user = user.userid;
+
+
+    next();
+    } catch (error) {
+    next(error);
+    }
+});
 
 const Ticket = mongoose.model('Ticket', tickets);
 module.exports = Ticket;
