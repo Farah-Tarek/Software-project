@@ -1,72 +1,78 @@
 const express = require('express');
-const cookieParser=require('cookie-parser');
 const mongoose = require('mongoose');
-const socket = require("socket.io");
-require("dotenv").config();
-const authenticationMiddleware = require("./Middleware/authenticationMiddleware.js");
+const socketIO = require("socket.io");
 const cors = require("cors");
+const dotenv = require("dotenv");
+const cron = require('node-cron');
+const { performBackupAndRestore } = require('./backup');
+
+dotenv.config();
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-const userRoutes = require('./routes/auth');
-const ticketRoutes = require('./routes/ticketRoutes');
-const recoveryRoutes = require('./routes/recoveryRoutes');
-const Workflow = require('./routes/workflowRoute');
-const messageRoutes = require('./routes/MessageRoute');
-const chatRoute = require('./routes/ChatRoute');
-const baseRoutes = require('./routes/KBR');
-const agentRoutes = require('./routes/agentRoutes');  
-const userSchema = require('./models/userSchema');
-app.use(cors({
-  origin: 'http://localhost:5173'
-  , withCredentials: true  // Replace with the URL of your frontend
-}));
-// Set the base URL for all Axios requests
-app.use(cookieParser());
-
-app.use(
-  cors({
-    origin: process.env.ORIGIN,
-    methods: ["GET", "POST", "DELETE", "PUT"],
-    credentials: true,
-  })
-);
-
-
-app.use('/api/users/', userRoutes);
-app.use(authenticationMiddleware);
-app.use("/api/messages", messageRoutes);
-app.use("/api/chat", chatRoute);
-
+app.use(cors());
 
 require("./database");
 
+// Import Routes
+const userRoutes = require('./routes/auth');
+const ticketRoutes = require('./routes/ticketRoutes');
+const recoveryRoutes = require('./routes/recoveryRoutes');
+const workflowRoutes = require('./routes/workflowRoute');
+const messageRoutes = require('./routes/messageRoutes');
+const conversationRoutes = require('./routes/conversationRoutes');
+
+app.use("/api/", messageRoutes);
+app.use("/api/", conversationRoutes);
 app.use('/recovery', recoveryRoutes);
-app.use('/api/workflow/', Workflow);
+app.use('/api/users/', userRoutes);
+app.use('/api/workflow/', workflowRoutes);
 app.use('/api/tickets', ticketRoutes);
-app.use('/api/base', baseRoutes);
 
-// Import the performBackupAndRestore function
-const { performBackupAndRestore } = require('./backup');
+// Socket.io
+const server = app.listen(process.env.PORT, () => {
+  console.log(`Server started on ${process.env.PORT}`);
+});
 
-
-// Schedule the backup and restore operation
-// Replace the existing import statement
-
-// Schedule the backup and restore operation
- 
-
-// The rest of your code remains unchanged
-
-const server = app.listen(process.env.PORT, () =>
-  console.log(`Server started on ${process.env.PORT}`)
-);
-const io = socket(server, {
+const io = socketIO(server, {
   cors: {
-    origin: "http://localhost:5173",
-    credentials: true,
+    origin: 'http://localhost:3000',
   },
 });
 
+let users = [];
 
+io.on('connection', socket => {
+  console.log('User connected', socket.id);
 
+  socket.on('addUser', userId => {
+    const isUserExist = users.find(user => user.userId === userId);
+    if (!isUserExist) {
+      const user = { userId, socketId: socket.id };
+      users.push(user);
+      io.emit('getUsers', users);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    users = users.filter(user => user.socketId !== socket.id);
+    io.emit('getUsers', users);
+  });
+  socket.on('sendMessage',(data)=>{
+    console.log(
+      'Send Message', data
+    )
+  })
+});
+
+// Schedule the backup and restore operation
+cron.schedule('0 0 * * *', async () => {
+  try {
+    console.log('Starting backup and restore process...');
+    await performBackupAndRestore();
+    console.log('Backup and restore completed successfully.');
+  } catch (error) {
+    console.error('Error during backup and restore:', error);
+  }
+});
