@@ -7,7 +7,7 @@ const User = require('../models/userSchema'); // Make sure the path is correct
 
 const tickets = new Schema({
     Ticketid: {
-        type: Number,
+        type: String,
         unique: true,
         required: true
     },
@@ -56,12 +56,8 @@ const tickets = new Schema({
     rating: {
         type: Number,
         enum: [0, 1, 2, 3, 4, 5],
-        required: true
     },
-    routing: {
-        type: String,
-        required: true
-    },
+    
     priority: {
         type: String,
         enum: ['high', 'medium', 'low'],
@@ -82,12 +78,12 @@ tickets.virtual('resolution_time').get(function () {
 
 tickets.pre('save', async function (next) {
     try {
-      const user = await mongoose.model('User').findById(this.user);
-      if (!user) {
+        const user = await mongoose.model('User').findById(this.user);
+        if (!user) {
         throw new Error('User not found');
       }
   
-      this.user = user.userid;
+      this.user = user._id;
   
   
       next();
