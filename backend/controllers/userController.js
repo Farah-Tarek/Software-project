@@ -4,21 +4,74 @@ const SupportAgent = require('../models/agent_schema'); // Your support agent mo
 const jwt = require('jsonwebtoken');
 const speakeasy = require('speakeasy');
 const nodemailer = require('nodemailer');
-require('dotenv').config();
-const secretKey =process.env.SECRET_KEY ;
+const dotenv = require('dotenv');
+dotenv.config();
 const smtpapi = require('smtpapi');
 const mongoose = require('mongoose');
-const sessionModel = require('../models/sessionModel'); // Make sure to import your session model
+
+
+const getUserProfile = async (req, res) => {
+	// We will fetch user profile either with username or userId
+	// query is either username or userId
+	const { query } = req.params;
+
+	try {
+		let user;
+
+		// query is userId
+		if (mongoose.Types.ObjectId.isValid(query)) {
+			user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
+		} else {
+			// query is username
+			user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
+		}
+
+		if (!user) return res.status(404).json({ error: "User not found" });
+
+		res.status(200).json(user);
+	} catch (err) {
+		res.status(500).json({ error: err.message });
+		console.log("Error in getUserProfile: ", err.message);
+	}
+};
+
 
 async function registerUser(req, res) {
   try {
+    const uniqueId = mongoose.Types.ObjectId(); // Manually generate a unique ObjectId
     const { firstname, lastname, userid, password, email, role } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
       firstname,
       lastname,
-      userid,
+      userid:uniqueId,
+      password: hashedPassword,
+      email,
+      role: "user",
+    });
+
+    const savedUser = await newUser.save();
+
+    await logBackup('user', 'create', savedUser._id, savedUser.toObject());
+
+    res.json(savedUser);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+
+async function Manager_registerUser(req, res) {
+  try {
+    const uniqueId = mongoose.Types.ObjectId(); // Manually generate a unique ObjectId
+    const { firstname, lastname, userid, password, email, role } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      firstname,
+      lastname,
+      userid:uniqueId,
       password: hashedPassword,
       email,
       role,
@@ -33,6 +86,8 @@ async function registerUser(req, res) {
     res.status(500).json({ error: error.message });
   }
 }
+
+
 
 async function updateUser(req, res) {
   try {
@@ -64,54 +119,90 @@ async function updateUser(req, res) {
   }
 }
 
+// async function loginUser(req, res) {
+//   try {
+//     const { email, password } = req.body;
+
+//     const user = await User.findOne({ email });
+
+//     if (!user) {
+//       return res.status(404).json({ error: 'User not found' });
+//     }
+
+//     const passwordMatch = await bcrypt.compare(password, user.password);
+
+//     if (passwordMatch) {
+      
+//     } else {
+//       res.status(401).json({ error: 'Invalid password' });
+//     }
+//   } catch (error) {
+//     console.error('Error logging in:', error);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// }
+
 async function loginUser(req, res) {
   try {
     const { email, password } = req.body;
 
-    // Find the user by email
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "email not found" });
-    }
 
-    console.log("password: ", user.password);
-    // Check if the password is correct
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return res.status(405).json({ message: "incorect password" });
-    }
 
-    const currentDateTime = new Date();
-      const expiresAt = new Date(+currentDateTime + 1800000); // expire in 3 minutes
-      // Generate a JWT token
-      const token = jwt.sign(
-        { user: { userId: user._id, role: user.role } },
-        secretKey,
-        {
-          expiresIn: 10 * 60,
-        }
-      );
-      let newSession = new sessionModel({
+    if (passwordMatch) {
+      const payload = {
         userId: user._id,
-        token,
-        expiresAt: expiresAt,
+        email: user.email
+      };
+      const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY || 'THIS_IS_A_JWT_SECRET_KEY';
+
+      jwt.sign(payload, JWT_SECRET_KEY, { expiresIn: 84600 }, async (err, token) => {
+        await User.updateOne({ _id: user._id }, {
+          $set: { token }
+        });
+        user.save();
+
+              if (err) {
+          console.error('Error creating JWT:', err);
+          return res.status(500).json({ error: 'Error creating token' });
+        }
+
+        await User.updateOne({ _id: user._id }, {
+          $set: { token }
+        });
+        await sendMFASecretEmail(email);
+
+        return res.status(200).json({
+          user: { id: user._id, email: user.email, fullName: user.fullName },
+          token
+        });
       });
-      await newSession.save();
-      return res
-        .cookie("token", token, {
-          expires: expiresAt,
-          withCredentials: true,
-          httpOnly: false,
-          SameSite:'none'
-        })
-        .status(200)
-        .json({ message: "login successfully", user });
+    } else {
+      return res.status(401).json({ error: 'Invalid password' });
+    }
   } catch (error) {
-    console.error("Error logging in:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error('Error logging in:', error);
+    return res.status(500).json({ message: 'Server error' });
   }
 }
+
+
+
+
+// const logoutUser = (req, res) => {
+// 	try {
+// 		res.cookie("jwt", "", { maxAge: 1 });
+// 		res.status(200).json({ message: "User logged out successfully" });
+// 	} catch (err) {
+// 		res.status(500).json({ error: err.message });
+// 		console.log("Error in signupUser: ", err.message);
+// 	}
+// };
 
 
 async function logBackup(collectionName, action, documentId, data) {
@@ -137,9 +228,8 @@ async function isMFAcorrect(req, res) {
   try {
     const mfa = req.body.secret;
     const userId = req.params.userId;
-
-    const user = await User.findOne({ userid: userId });
-
+console.log('UserId',userId,mfa);
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -200,15 +290,15 @@ async function sendMFASecretEmail(userEmail) {
 
 async function enableMFA(req, res) {
   try {
-    const userId = req.params.userId;
-    const user = await User.findOne({ userid: userId });
+    const Id = req.params.userId;
+    const user = await User.findOne({ userid: Id });
 
     if (!user) {
       console.log('User not found');
       return res.status(401).json({ error: 'Invalid user credentials' });
     }
 
-    const updatedUser = await User.updateOne({ userid: userId }, { $set: { 'mfa.enabled': true } });
+    const updatedUser = await User.updateOne({ userid:Id  }, { $set: { 'mfa.enabled': true } });
 
     await sendMFASecretEmail(user.email);
 
@@ -218,6 +308,7 @@ async function enableMFA(req, res) {
     res.status(500).json({ error: error.message });
   }
 }
+
 
 async function disableMFA(req, res) {
   try {
@@ -326,6 +417,60 @@ const get_all_read_notification = async (req,res) => {
     }
 }
 
+const getUser = async (req, res) => {
+  try {
+    const users = await User.find();
+
+    const usersData = users.map(user => ({
+      email: user.email,
+      firstname: user.firstname,
+      receiverId: user._id,
+    }));
+
+    res.status(200).json(usersData);
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+// const getUser = async (req, res) => {
+//   try {
+//     const users = await User.find();
+
+//     res.status(200).json(users);
+//   } catch (error) {
+//     console.error('Error:', error);
+//     res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// };
+
+
+
+
+
+
+// Example backend route handling for /api/users/profile
+const profile = async (req, res) => {
+  const userId = req.params.userId; // Extract user ID from request parameters
+
+  // Use the extracted user ID in the Mongoose query
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Send the user data in the response
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
 
 module.exports = {
   registerUser,
@@ -340,4 +485,7 @@ module.exports = {
   logBackup,
   get_all_unread_notification,
   get_all_read_notification,
+  getUser,
+  profile,
+  getUserProfile,
 };
