@@ -1,19 +1,10 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const moment = require('moment');
+
 const User = require('../models/userSchema'); // Make sure the path is correct
 
-const Ticket = require('./models/ticket'); // Make sure the path is correct
 
-Ticket.get('/user-tickets/:userid', async (req, res) => {
-try {
-    const tickets = await Ticket.find({ user: req.params.userid });
-    res.json(tickets);
-} catch (error) {
-    res.status(500).json({ message: 'Error fetching tickets' });
-}
-});
-
-module.exports = router;
 const tickets = new Schema({
     Ticketid: {
         type: Number,
@@ -37,8 +28,8 @@ const tickets = new Schema({
     status: {
         type: String,
         required: true,
-        enum: ['created', 'open', 'updated', 'close','pending'],
-        default: 'created'
+        enum: [ 'open', 'close','pending'],
+        default: 'open'
     },
     resolution: {
         type: String
@@ -49,20 +40,18 @@ const tickets = new Schema({
         default: false
     },
     assignedAgent: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'agent_model',
-        select: 'agentid'
+        type: String,
     },
     createdTime: {
         type: Date,
+        default: Date.now,
         required: true
     },
     updatedTime: {
-        type: Date
+        type: Date,
     },
     closeTime: {
         type: Date,
-        default: null
     },
     rating: {
         type: Number,
@@ -80,21 +69,32 @@ const tickets = new Schema({
     },
 });
 
+
+tickets.virtual('resolution_time').get(function () {
+    if (this.closeTime && this.createdTime) {
+        const duration = moment.duration(this.closeTime - this.createdTime);
+        const resolutionTime = moment.utc(duration.asMilliseconds());
+        return resolutionTime.format('YYYY-MM-DDTHH:mm:ss'); // Adjust the format as needed
+    }
+    return null;
+});
+
+
 tickets.pre('save', async function (next) {
     try {
-    const user = await mongoose.model('User').findById(this.user);
-    if (!user) {
+      const user = await mongoose.model('User').findById(this.user);
+      if (!user) {
         throw new Error('User not found');
-    }
-
-    this.user = user.userid;
-
-
-    next();
+      }
+  
+      this.user = user.userid;
+  
+  
+      next();
     } catch (error) {
-    next(error);
+      next(error);
     }
-});
+  });
 
 const Ticket = mongoose.model('Ticket', tickets);
 module.exports = Ticket;
