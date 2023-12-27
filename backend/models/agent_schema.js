@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const User = require('./userSchema');
+
+
 
 const SupportAgentSchema = new Schema({
   userId: {
@@ -24,11 +27,15 @@ const SupportAgentSchema = new Schema({
   },
   number_of_assigned_tickets: {
     type: Number,
-    default:0
+    default: 0
   },
   available: {
     type: Boolean,
-    default:'yes'
+    default: true
+  },
+  role: {
+    type: String,
+    default: 'supportagent'
   },
   mfa: {
     enabled: {
@@ -41,29 +48,32 @@ const SupportAgentSchema = new Schema({
   major: {
     type: String,
   },
-  agent_type:{
-    type:String,
-    enum :['Agent 1','Agent 2','Agent 3'],
+  agent_type: {
+    type: String,
+    enum: ['Agent 1', 'Agent 2', 'Agent 3'],
     required: true
-
   }
-
-
 });
 
-// Middleware to automatically populate email and password from the associated user
+// Middleware to automatically populate fields from the associated user
 SupportAgentSchema.pre('save', async function (next) {
   try {
     const user = await mongoose.model('User').findById(this.userId);
     if (!user) {
       throw new Error('User not found');
+
     }
 
-    this.email = user.email;
-    this.userpassword = user.userpassword;
+    this.userId = user.userid;
+
     this.firstname = user.firstname;
     this.Lastname = user.Lastname;
-
+    this.userpassword = user.password; // Use the hashed password from User model
+    this.email = user.email;
+    this.rating = 0;
+    this.number_of_assigned_tickets = 0;
+    this.available = true;
+    this.role = 'supportagent';
 
     next();
   } catch (error) {
