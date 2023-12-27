@@ -1,21 +1,21 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
+const mongoose = require('mongoose');
+//const { encrypt, decrypt, generateMFASecret } = require('../controllers/securityController');
 
-const userSchema = new Schema({
+const userSchema = new mongoose.Schema({
   firstname: {
     type: String,
     required: true,
   },
-  Lastname: {
+  lastname: {
     type: String,
     required: true,
   },
   userid: {
-    type: Number,
+    type: String,
     required: true,
-    unique: true, 
+    unique: true,
   },
-  userpassword: {
+  password: {
     type: String,
     required: true,
   },
@@ -23,16 +23,40 @@ const userSchema = new Schema({
     type: String,
     required: true,
     unique: true,
+    lowercase: true,
   },
   mfa: {
-    enabled: { type: Boolean, default: false },
-    secret: { type: String },
+    enabled: {
+      type: Boolean,
+    },
+    secret: {
+      type: String,
+    }
   },
   role: {
     type: String,
     required: true,
     enum: ["user", "admin", "supportagent", "manager"],
   },
+
+  token: {
+    type: String
+},
+  
+
+  notifcation: {
+    type: Array,
+    default: [],
+  },
+  seennotification: {
+    type: Array,
+    default: [],
+  },
+
+
+
+
 });
 const User = mongoose.model('User', userSchema);
 module.exports = User;
+
