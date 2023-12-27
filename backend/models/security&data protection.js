@@ -6,38 +6,20 @@ const backup = require('mongoose-backup');
 const speakeasy = require('speakeasy');
 const CryptoJS = require('crypto-js');
 
-
-app.post('/api/mfaSignIn', async (req, res) => {
-    try {
-    const { email, mfaCode } = req.body;
-
-       // Replace the following lines with your actual MFA verification logic
-    const isTokenValid = speakeasy.totp.verify({
-        secret: 'YOUR_SECRET_KEY',
-        encoding: 'base32',
-        token: mfaCode,
-    });
-
-    if (!isTokenValid) {
-        return res.status(401).json({ error: 'Invalid MFA code. Please try again.' });
-    }
-
-       // If the token is valid, return a successful response
-    return res.status(200).json({ message: 'MFA sign-in successful.' });
-    } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Server error. Please try again later.' });
-    }
+/*
+const userSchema = new Schema({
+    username: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    role: { type: String, required: true },
+    mfa: {
+        enabled: { type: Boolean, default: false },
+        secret: { type: String },
+    },
 });
-
-const mfaSignIn = async (email, mfaCode) => {
-    try {
-    const response = await axios.post('/api/mfaSignIn', { email, mfaCode });
-    console.log(response.data);
-    } catch (error) {
-    console.error('Error during MFA sign-in:', error);
-    }
-};
+*/
 
 // security measures
 function encrypt(text) {
@@ -141,3 +123,7 @@ if (!user.mfa.enabled) {
 }
 
 module.exports = Security;
+
+
+//mongo atlas online 
+//extension vscode
