@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const secretKey = "s1234rf,.lp";
+const secretKey = "421761zz";
 
 module.exports = function authenticationMiddleware(req, res, next) {
   const cookie = req.cookies;

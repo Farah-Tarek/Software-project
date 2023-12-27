@@ -29,21 +29,21 @@ const MessageSchema = new Schema({
 const communicationSchema = new Schema({
   Customer: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'user_Schema',
+      ref: 'user_model',
       required: true,
       select: 'userid'
   },
 
   Agent: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'agent_schema',
+      ref: 'agent_model',
       required: true,
       select: 'agentid'
   },
 
   Ticketid: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'tickets',
+      ref: 'Ticket',
       required: true,
       select: 'Ticketid'
   },
