@@ -1,0 +1,61 @@
+body {
+    font-family: 'Arial Black', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: rgb(0, 0, 0);
+    font-size: 18px;
+  }
+  
+  h1 {
+    font-size: 41px; /* Set the font size for h1 elements */
+  }
+  
+  p {
+    font-size: 19px; /* Set the font size for paragraph elements */
+  }
+  
+  image {
+    mix-blend-mode:multiply;
+  }
+  
+  .logo {
+    max-width: 100%; /* Ensure the image doesn't exceed its container */
+    height: auto; /* Maintain the aspect ratio of the image */
+    display: block; /* Remove any default inline styling for images */
+    margin-top: 20px; /* Add some top margin for spacing */
+  }
+  
+  
+  .container {
+    max-width: 1000px;
+    margin: 50px auto;
+    background-color: rgb(255, 255, 255);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(198, 54, 54, 0.888)
+  }
+  
+  form {
+    margin-bottom: 20px;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  select, textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+  
+  button {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+  
